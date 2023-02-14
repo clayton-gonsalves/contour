@@ -195,7 +195,7 @@ type AuthorizationServer struct {
 	// ExtensionServiceRef specifies the extension resource that will authorize client requests.
 	//
 	// +required
-	ExtensionServiceRef ExtensionServiceReference `json:"extensionRef"`
+	ExtensionServiceRef ExtensionServiceReference `json:"extensionRef,,omitempty"`
 
 	// AuthPolicy sets a default authorization policy for client requests.
 	// This policy will be used unless overridden by individual routes.
@@ -223,6 +223,9 @@ type AuthorizationServer struct {
 	// WithRequestBody specifies configuration for sending the client request's body to authorization server.
 	// +optional
 	WithRequestBody *AuthorizationServerBufferSettings `json:"withRequestBody,omitempty"`
+
+	// GlobalExternalAuthorizationDisabled optionally disables the global external authorization on the virtual host.
+	GlobalExternalAuthorizationDisabled bool `json:"globalExtAuthDisabled,omitempty"`
 }
 
 // AuthorizationServerBufferSettings enables ExtAuthz filter to buffer client request data and send it as part of authorization request
