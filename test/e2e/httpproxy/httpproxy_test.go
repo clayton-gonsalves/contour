@@ -483,4 +483,48 @@ descriptors:
 
 		f.NamespacedTest("grpc-web", testGRPCWeb)
 	})
+
+	Context("global external auth", func() {
+		withGlobalExtAuth := func(body e2e.NamespacedTestBody) e2e.NamespacedTestBody {
+			return func(namespace string) {
+				Context("with global external auth service", func() {
+					BeforeEach(func() {
+						contourConfig.GlobalExternalAuthorization = config.GlobalExternalAuthorization{
+							ExtensionService: fmt.Sprintf("%s/%s", namespace, "testserver"),
+							FailOpen:         false,
+							AuthPolicy: &config.GlobalAuthorizationPolicy{
+								Context: map[string]string{
+									"location": "global_config",
+									"header_2": "message_2",
+								},
+							},
+							ResponseTimeout: "10s",
+						}
+						contourConfiguration.Spec.GlobalExternalAuthorization = &contour_api_v1alpha1.GlobalExternalAuthorizationConfig{
+							ExtensionService: fmt.Sprintf("%s/%s", namespace, "testserver"),
+							FailOpen:         ref.To(false),
+							AuthPolicy: &contour_api_v1alpha1.GlobalAuthorizationPolicy{
+								Disabled: ref.To(false),
+								Context: map[string]string{
+									"location": "global_config",
+									"header_2": "message_2",
+								},
+							},
+							ResponseTimeout: "10s",
+						}
+						require.NoError(f.T(),
+							f.Deployment.EnsureGlobalExternalAuthResources(namespace))
+					})
+					body(namespace)
+				})
+			}
+		}
+
+		f.NamespacedTest("httpproxy-global-ext-auth-non-tls", withGlobalExtAuth(testGlobalExternalAuthVirtualHostNonTLS))
+
+		f.NamespacedTest("httpproxy-global-ext-auth-tls", withGlobalExtAuth(testGlobalExternalAuthTLS))
+
+		f.NamespacedTest("httpproxy-global-ext-auth-tls-override", withGlobalExtAuth(testGlobalExternalAuthTLSAuthDisabled))
+	})
+
 })

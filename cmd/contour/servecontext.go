@@ -388,6 +388,31 @@ func (ctx *serveContext) convertToContourConfigurationSpec() contour_api_v1alpha
 		serverHeaderTransformation = contour_api_v1alpha1.PassThroughServerHeader
 	}
 
+	var globalExtAuth *contour_api_v1alpha1.GlobalExternalAuthorizationConfig
+	if ctx.Config.GlobalExternalAuthorization.ExtensionService != "" {
+
+		globalExtAuth = &contour_api_v1alpha1.GlobalExternalAuthorizationConfig{
+			ExtensionService: ctx.Config.GlobalExternalAuthorization.ExtensionService,
+			ResponseTimeout:  ctx.Config.GlobalExternalAuthorization.ResponseTimeout,
+			FailOpen:         ref.To(ctx.Config.GlobalExternalAuthorization.FailOpen),
+		}
+
+		if ctx.Config.GlobalExternalAuthorization.AuthPolicy != nil {
+			globalExtAuth.AuthPolicy = &contour_api_v1alpha1.GlobalAuthorizationPolicy{
+				Disabled: ref.To(ctx.Config.GlobalExternalAuthorization.AuthPolicy.Disabled),
+				Context:  ctx.Config.GlobalExternalAuthorization.AuthPolicy.Context,
+			}
+		}
+
+		if ctx.Config.GlobalExternalAuthorization.WithRequestBody != nil {
+			globalExtAuth.WithRequestBody = &contour_api_v1alpha1.GlobalAuthorizationServerBufferSettings{
+				MaxRequestBytes:     ctx.Config.GlobalExternalAuthorization.WithRequestBody.MaxRequestBytes,
+				AllowPartialMessage: ref.To(ctx.Config.GlobalExternalAuthorization.WithRequestBody.AllowPartialMessage),
+				PackAsBytes:         ref.To(ctx.Config.GlobalExternalAuthorization.WithRequestBody.PackAsBytes),
+			}
+		}
+	}
+
 	policy := &contour_api_v1alpha1.PolicyConfig{
 		RequestHeadersPolicy: &contour_api_v1alpha1.HeadersPolicy{
 			Set:    ctx.Config.Policy.RequestHeadersPolicy.Set,
@@ -501,10 +526,11 @@ func (ctx *serveContext) convertToContourConfigurationSpec() contour_api_v1alpha
 			RootNamespaces:        ctx.proxyRootNamespaces(),
 			FallbackCertificate:   fallbackCertificate,
 		},
-		EnableExternalNameService: &ctx.Config.EnableExternalNameService,
-		RateLimitService:          rateLimitService,
-		Policy:                    policy,
-		Metrics:                   &contourMetrics,
+		EnableExternalNameService:   &ctx.Config.EnableExternalNameService,
+		GlobalExternalAuthorization: globalExtAuth,
+		RateLimitService:            rateLimitService,
+		Policy:                      policy,
+		Metrics:                     &contourMetrics,
 	}
 
 	xdsServerType := contour_api_v1alpha1.ContourServerType

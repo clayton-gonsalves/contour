@@ -371,6 +371,10 @@ func (s *Server) doServe() error {
 		return err
 	}
 
+	if listenerConfig.GlobalExternalAuthConfig, err = s.setupGlobalExternalAuthentication(contourConfiguration); err != nil {
+		return err
+	}
+
 	contourMetrics := metrics.NewMetrics(s.registry)
 
 	// Endpoints updates are handled directly by the EndpointsTranslator
@@ -434,19 +438,20 @@ func (s *Server) doServe() error {
 	}
 
 	builder := s.getDAGBuilder(dagBuilderConfig{
-		ingressClassNames:         ingressClassNames,
-		rootNamespaces:            contourConfiguration.HTTPProxy.RootNamespaces,
-		gatewayControllerName:     gatewayControllerName,
-		gatewayRef:                gatewayRef,
-		disablePermitInsecure:     *contourConfiguration.HTTPProxy.DisablePermitInsecure,
-		enableExternalNameService: *contourConfiguration.EnableExternalNameService,
-		dnsLookupFamily:           contourConfiguration.Envoy.Cluster.DNSLookupFamily,
-		headersPolicy:             contourConfiguration.Policy,
-		clientCert:                clientCert,
-		fallbackCert:              fallbackCert,
-		connectTimeout:            timeouts.ConnectTimeout,
-		client:                    s.mgr.GetClient(),
-		metrics:                   contourMetrics,
+		ingressClassNames:                  ingressClassNames,
+		rootNamespaces:                     contourConfiguration.HTTPProxy.RootNamespaces,
+		gatewayControllerName:              gatewayControllerName,
+		gatewayRef:                         gatewayRef,
+		disablePermitInsecure:              *contourConfiguration.HTTPProxy.DisablePermitInsecure,
+		enableExternalNameService:          *contourConfiguration.EnableExternalNameService,
+		dnsLookupFamily:                    contourConfiguration.Envoy.Cluster.DNSLookupFamily,
+		headersPolicy:                      contourConfiguration.Policy,
+		clientCert:                         clientCert,
+		fallbackCert:                       fallbackCert,
+		connectTimeout:                     timeouts.ConnectTimeout,
+		client:                             s.mgr.GetClient(),
+		metrics:                            contourMetrics,
+		globalExternalAuthorizationService: contourConfiguration.GlobalExternalAuthorization,
 	})
 
 	// Build the core Kubernetes event handler.
@@ -633,6 +638,50 @@ func (s *Server) setupRateLimitService(contourConfiguration contour_api_v1alpha1
 		FailOpen:                    ref.Val(contourConfiguration.RateLimitService.FailOpen, false),
 		EnableXRateLimitHeaders:     ref.Val(contourConfiguration.RateLimitService.EnableXRateLimitHeaders, false),
 		EnableResourceExhaustedCode: ref.Val(contourConfiguration.RateLimitService.EnableResourceExhaustedCode, false),
+	}, nil
+}
+
+func (s *Server) setupGlobalExternalAuthentication(contourConfiguration contour_api_v1alpha1.ContourConfigurationSpec) (*xdscache_v3.GlobalExternalAuthConfig, error) {
+	if contourConfiguration.GlobalExternalAuthorization == nil {
+		return nil, nil
+	}
+
+	// ensure the specified ExtensionService exists
+	extensionSvc := &contour_api_v1alpha1.ExtensionService{}
+	namespaceName := k8s.NamespacedNameFrom(contourConfiguration.GlobalExternalAuthorization.ExtensionService)
+	key := client.ObjectKey{
+		Namespace: namespaceName.Namespace,
+		Name:      namespaceName.Name,
+	}
+
+	// Using GetAPIReader() here because the manager's caches won't be started yet,
+	// so reads from the manager's client (which uses the caches for reads) will fail.
+	if err := s.mgr.GetAPIReader().Get(context.Background(), key, extensionSvc); err != nil {
+		return nil, fmt.Errorf("error getting global external authorization extension service %s: %v", key, err)
+	}
+
+	// get the response timeout from the ExtensionService
+	var responseTimeout timeout.Setting
+	var err error
+
+	if tp := extensionSvc.Spec.TimeoutPolicy; tp != nil {
+		responseTimeout, err = timeout.Parse(tp.Response)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing global http ext auth extension service %s response timeout: %v", key, err)
+		}
+	}
+
+	var sni string
+	if extensionSvc.Spec.UpstreamValidation != nil {
+		sni = extensionSvc.Spec.UpstreamValidation.SubjectName
+	}
+
+	return &xdscache_v3.GlobalExternalAuthConfig{
+		ExtensionService: key,
+		SNI:              sni,
+		Timeout:          responseTimeout,
+		FailOpen:         ref.Val(contourConfiguration.GlobalExternalAuthorization.FailOpen, false),
+		Context:          contourConfiguration.GlobalExternalAuthorization.AuthPolicy.Context,
 	}, nil
 }
 
@@ -836,19 +885,20 @@ func (s *Server) setupGatewayAPI(contourConfiguration contour_api_v1alpha1.Conto
 }
 
 type dagBuilderConfig struct {
-	ingressClassNames         []string
-	rootNamespaces            []string
-	gatewayControllerName     string
-	gatewayRef                *types.NamespacedName
-	disablePermitInsecure     bool
-	enableExternalNameService bool
-	dnsLookupFamily           contour_api_v1alpha1.ClusterDNSFamilyType
-	headersPolicy             *contour_api_v1alpha1.PolicyConfig
-	clientCert                *types.NamespacedName
-	fallbackCert              *types.NamespacedName
-	connectTimeout            time.Duration
-	client                    client.Client
-	metrics                   *metrics.Metrics
+	ingressClassNames                  []string
+	rootNamespaces                     []string
+	gatewayControllerName              string
+	gatewayRef                         *types.NamespacedName
+	disablePermitInsecure              bool
+	enableExternalNameService          bool
+	dnsLookupFamily                    contour_api_v1alpha1.ClusterDNSFamilyType
+	headersPolicy                      *contour_api_v1alpha1.PolicyConfig
+	clientCert                         *types.NamespacedName
+	fallbackCert                       *types.NamespacedName
+	connectTimeout                     time.Duration
+	client                             client.Client
+	metrics                            *metrics.Metrics
+	globalExternalAuthorizationService *contour_api_v1alpha1.GlobalExternalAuthorizationConfig
 }
 
 func (s *Server) getDAGBuilder(dbc dagBuilderConfig) *dag.Builder {
@@ -917,14 +967,15 @@ func (s *Server) getDAGBuilder(dbc dagBuilderConfig) *dag.Builder {
 			ConnectTimeout:    dbc.connectTimeout,
 		},
 		&dag.HTTPProxyProcessor{
-			EnableExternalNameService: dbc.enableExternalNameService,
-			DisablePermitInsecure:     dbc.disablePermitInsecure,
-			FallbackCertificate:       dbc.fallbackCert,
-			DNSLookupFamily:           dbc.dnsLookupFamily,
-			ClientCertificate:         dbc.clientCert,
-			RequestHeadersPolicy:      &requestHeadersPolicy,
-			ResponseHeadersPolicy:     &responseHeadersPolicy,
-			ConnectTimeout:            dbc.connectTimeout,
+			EnableExternalNameService:   dbc.enableExternalNameService,
+			DisablePermitInsecure:       dbc.disablePermitInsecure,
+			FallbackCertificate:         dbc.fallbackCert,
+			DNSLookupFamily:             dbc.dnsLookupFamily,
+			ClientCertificate:           dbc.clientCert,
+			RequestHeadersPolicy:        &requestHeadersPolicy,
+			ResponseHeadersPolicy:       &responseHeadersPolicy,
+			ConnectTimeout:              dbc.connectTimeout,
+			GlobalExternalAuthorization: dbc.globalExternalAuthorizationService,
 		},
 	}
 

@@ -403,6 +403,28 @@ type CookieRewritePolicy struct {
 	SameSite *string
 }
 
+// GlobalExternalAuthorization holds the global authorization parameters.
+type GlobalExternalAuthorization struct {
+	// AuthorizationService points to the extension that client
+	// requests are forwarded to for authorization. If nil, no
+	// authorization is enabled for this host.
+	AuthorizationService *ExtensionCluster
+
+	// AuthorizationResponseTimeout sets how long the proxy should wait
+	// for authorization server responses.
+	AuthorizationResponseTimeout timeout.Setting
+
+	// AuthorizationFailOpen sets whether authorization server
+	// failures should cause the client request to also fail. The
+	// only reason to set this to `true` is when you are migrating
+	// from internal to external authorization.
+	AuthorizationFailOpen bool
+
+	// AuthorizationServerWithRequestBody specifies configuration
+	// for buffering request data sent to AuthorizationServer
+	AuthorizationServerWithRequestBody *AuthorizationServerBufferSettings
+}
+
 // RateLimitPolicy holds rate limiting parameters.
 type RateLimitPolicy struct {
 	Local  *LocalRateLimitPolicy
@@ -634,6 +656,10 @@ type VirtualHost struct {
 	// RateLimitPolicy defines if/how requests for the virtual host
 	// are rate limited.
 	RateLimitPolicy *RateLimitPolicy
+
+	// GlobalExternalAuthorization defineshow requests for the virtual host
+	// are authorized.
+	GlobalExternalAuthorization *GlobalExternalAuthorization
 
 	Routes map[string]*Route
 }

@@ -62,6 +62,11 @@ type ContourConfigurationSpec struct {
 	// +optional
 	EnableExternalNameService *bool `json:"enableExternalNameService,omitempty"`
 
+	// GlobalExternalAuthorization allows envoys external authorization filter
+	// to be enabled for all virtual hosts.
+	// +optional
+	GlobalExternalAuthorization *GlobalExternalAuthorizationConfig `json:"globalExtAuth,omitempty"`
+
 	// RateLimitService optionally holds properties of the Rate Limit Service
 	// to be used for global rate limiting.
 	// +optional
@@ -621,6 +626,67 @@ type NetworkParameters struct {
 	// Contour's default is 9001.
 	// +optional
 	EnvoyAdminPort *int `json:"adminPort,omitempty"`
+}
+
+// GlobalExternalAuthorizationConfig defines properties of global external authorization.
+type GlobalExternalAuthorizationConfig struct {
+	// ExtensionService identifies the extension service responsible for the authorization.
+	// formatted as <namespace>/<name>.
+	ExtensionService string `json:"extensionService,omitempty"`
+	// AuthPolicy sets a default authorization policy for client requests.
+	// This policy will be used unless overridden by individual routes.
+	//
+	// +optional
+	AuthPolicy *GlobalAuthorizationPolicy `json:"globalAuthPolicy,omitempty"`
+	// ResponseTimeout configures maximum time to wait for a check response from the authorization server.
+	// Timeout durations are expressed in the Go [Duration format](https://godoc.org/time#ParseDuration).
+	// Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+	// The string "infinity" is also a valid input and specifies no timeout.
+	//
+	// +optional
+	ResponseTimeout string `json:"responseTimeout,omitempty"`
+	// If FailOpen is true, the client request is forwarded to the upstream service
+	// even if the authorization server fails to respond. This field should not be
+	// set in most cases. It is intended for use only while migrating applications
+	// from internal authorization to Contour external authorization.
+	//
+	// +optional
+	FailOpen *bool `json:"failOpen,omitempty"`
+	// WithRequestBody specifies configuration for sending the client request's body to authorization server.
+	// +optional
+	WithRequestBody *GlobalAuthorizationServerBufferSettings `json:"withRequestBody,omitempty"`
+}
+
+// GlobalAuthorizationServerBufferSettings enables ExtAuthz filter to buffer client request data and send it as part of authorization request
+type GlobalAuthorizationServerBufferSettings struct {
+	// MaxRequestBytes sets the maximum size of message body ExtAuthz filter will hold in-memory.
+	// +optional
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:default=1024
+	MaxRequestBytes uint32 `json:"maxRequestBytes,omitempty"`
+	// If AllowPartialMessage is true, then Envoy will buffer the body until MaxRequestBytes are reached.
+	// +optional
+	AllowPartialMessage *bool `json:"allowPartialMessage,omitempty"`
+	// If PackAsBytes is true, the body sent to Authorization Server is in raw bytes.
+	// +optional
+	PackAsBytes *bool `json:"packAsBytes,omitempty"`
+}
+
+// GlobalAuthorizationPolicy modifies how client requests are authenticated.
+type GlobalAuthorizationPolicy struct {
+	// When true, this field disables client request authentication
+	// for the scope of the policy.
+	//
+	// +optional
+	Disabled *bool `json:"disabled,omitempty"`
+	// Context is a set of key/value pairs that are sent to the
+	// authentication server in the check request. If a context
+	// is provided at an enclosing scope, the entries are merged
+	// such that the inner scope overrides matching keys from the
+	// outer scope.
+	//
+	// +optional
+	Context map[string]string `json:"context,omitempty"`
 }
 
 // RateLimitServiceConfig defines properties of a global Rate Limit Service.

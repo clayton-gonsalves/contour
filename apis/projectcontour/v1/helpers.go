@@ -51,6 +51,14 @@ func (v *VirtualHost) AuthorizationContext() map[string]string {
 	return nil
 }
 
+// DisableGlobalAuthorization returns true if this virtual host disables
+// global authorization. If a global authorization config is present, the default
+// policy is to not disable.
+func (v *VirtualHost) DisableGlobalAuthorization() bool {
+	return v.Authorization != nil && v.Authorization.GlobalExternalAuthorizationDisabled
+
+}
+
 // GetPrefixReplacements returns replacement prefixes from the path
 // rewrite policy (if any).
 func (r *Route) GetPrefixReplacements() []ReplacePrefix {

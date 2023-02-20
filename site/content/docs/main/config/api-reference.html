@@ -354,7 +354,9 @@ ExtensionServiceReference
 </em>
 </td>
 <td>
-<p>ExtensionServiceRef specifies the extension resource that will authorize client requests.</p>
+<em>(Optional)</em>
+<p>ExtensionServiceRef specifies the extension resource that will authorize client requests.
+One of globalExtAuthDisabled or extensionRef must be set.</p>
 </td>
 </tr>
 <tr>
@@ -418,6 +420,20 @@ AuthorizationServerBufferSettings
 <td>
 <em>(Optional)</em>
 <p>WithRequestBody specifies configuration for sending the client request&rsquo;s body to authorization server.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>globalExtAuthDisabled</code>
+<br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>GlobalExternalAuthorizationDisabled optionally disables the global external authorization on the virtual host.
+One of globalExtAuthDisabled or extensionRef must be set.</p>
 </td>
 </tr>
 </tbody>
@@ -4625,6 +4641,22 @@ bool
 </tr>
 <tr>
 <td style="white-space:nowrap">
+<code>globalExtAuth</code>
+<br>
+<em>
+<a href="#projectcontour.io/v1alpha1.GlobalExternalAuthorizationConfig">
+GlobalExternalAuthorizationConfig
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>GlobalExternalAuthorization allows envoys external authorization filter
+to be enabled for all virtual hosts.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
 <code>rateLimitService</code>
 <br>
 <em>
@@ -5299,6 +5331,22 @@ bool
 <em>(Optional)</em>
 <p>EnableExternalNameService allows processing of ExternalNameServices</p>
 <p>Contour&rsquo;s default is false for security reasons.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>globalExtAuth</code>
+<br>
+<em>
+<a href="#projectcontour.io/v1alpha1.GlobalExternalAuthorizationConfig">
+GlobalExternalAuthorizationConfig
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>GlobalExternalAuthorization allows envoys external authorization filter
+to be enabled for all virtual hosts.</p>
 </td>
 </tr>
 <tr>
@@ -6784,6 +6832,209 @@ instance corresponds to. If set, Contour will reconcile
 only this gateway, and will not reconcile any gateway
 classes.
 Exactly one of ControllerName or GatewayRef must be set.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="projectcontour.io/v1alpha1.GlobalAuthorizationPolicy">GlobalAuthorizationPolicy
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#projectcontour.io/v1alpha1.GlobalExternalAuthorizationConfig">GlobalExternalAuthorizationConfig</a>)
+</p>
+<p>
+<p>GlobalAuthorizationPolicy modifies how client requests are authenticated.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="white-space:nowrap">
+<code>disabled</code>
+<br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>When true, this field disables client request authentication
+for the scope of the policy.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>context</code>
+<br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Context is a set of key/value pairs that are sent to the
+authentication server in the check request. If a context
+is provided at an enclosing scope, the entries are merged
+such that the inner scope overrides matching keys from the
+outer scope.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="projectcontour.io/v1alpha1.GlobalAuthorizationServerBufferSettings">GlobalAuthorizationServerBufferSettings
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#projectcontour.io/v1alpha1.GlobalExternalAuthorizationConfig">GlobalExternalAuthorizationConfig</a>)
+</p>
+<p>
+<p>GlobalAuthorizationServerBufferSettings enables ExtAuthz filter to buffer client request data and send it as part of authorization request</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="white-space:nowrap">
+<code>maxRequestBytes</code>
+<br>
+<em>
+uint32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MaxRequestBytes sets the maximum size of message body ExtAuthz filter will hold in-memory.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>allowPartialMessage</code>
+<br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>If AllowPartialMessage is true, then Envoy will buffer the body until MaxRequestBytes are reached.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>packAsBytes</code>
+<br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>If PackAsBytes is true, the body sent to Authorization Server is in raw bytes.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="projectcontour.io/v1alpha1.GlobalExternalAuthorizationConfig">GlobalExternalAuthorizationConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#projectcontour.io/v1alpha1.ContourConfigurationSpec">ContourConfigurationSpec</a>)
+</p>
+<p>
+<p>GlobalExternalAuthorizationConfig defines properties of global external authorization.</p>
+</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="white-space:nowrap">
+<code>extensionService</code>
+<br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ExtensionService identifies the extension service responsible for the authorization.
+formatted as <namespace>/<name>.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>globalAuthPolicy</code>
+<br>
+<em>
+<a href="#projectcontour.io/v1alpha1.GlobalAuthorizationPolicy">
+GlobalAuthorizationPolicy
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>AuthPolicy sets a default authorization policy for client requests.
+This policy will be used unless overridden by individual routes.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>responseTimeout</code>
+<br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ResponseTimeout configures maximum time to wait for a check response from the authorization server.
+Timeout durations are expressed in the Go <a href="https://godoc.org/time#ParseDuration">Duration format</a>.
+Valid time units are &ldquo;ns&rdquo;, &ldquo;us&rdquo; (or &ldquo;µs&rdquo;), &ldquo;ms&rdquo;, &ldquo;s&rdquo;, &ldquo;m&rdquo;, &ldquo;h&rdquo;.
+The string &ldquo;infinity&rdquo; is also a valid input and specifies no timeout.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>failOpen</code>
+<br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>If FailOpen is true, the client request is forwarded to the upstream service
+even if the authorization server fails to respond. This field should not be
+set in most cases. It is intended for use only while migrating applications
+from internal authorization to Contour external authorization.</p>
+</td>
+</tr>
+<tr>
+<td style="white-space:nowrap">
+<code>withRequestBody</code>
+<br>
+<em>
+<a href="#projectcontour.io/v1alpha1.GlobalAuthorizationServerBufferSettings">
+GlobalAuthorizationServerBufferSettings
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>WithRequestBody specifies configuration for sending the client request&rsquo;s body to authorization server.</p>
 </td>
 </tr>
 </tbody>
