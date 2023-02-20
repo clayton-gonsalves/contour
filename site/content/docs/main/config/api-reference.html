@@ -345,7 +345,7 @@ external authorization GRPC protocol (<a href="https://www.envoyproxy.io/docs/en
 <tbody>
 <tr>
 <td style="white-space:nowrap">
-<code>extensionRef,</code>
+<code>extensionRef</code>
 <br>
 <em>
 <a href="#projectcontour.io/v1.ExtensionServiceReference">
@@ -354,7 +354,9 @@ ExtensionServiceReference
 </em>
 </td>
 <td>
-<p>ExtensionServiceRef specifies the extension resource that will authorize client requests.</p>
+<em>(Optional)</em>
+<p>ExtensionServiceRef specifies the extension resource that will authorize client requests.
+One of globalExtAuthDisabled or extensionRef must be set.</p>
 </td>
 </tr>
 <tr>
@@ -429,7 +431,9 @@ bool
 </em>
 </td>
 <td>
-<p>GlobalExternalAuthorizationDisabled optionally disables the global external authorization on the virtual host.</p>
+<em>(Optional)</em>
+<p>GlobalExternalAuthorizationDisabled optionally disables the global external authorization on the virtual host.
+One of globalExtAuthDisabled or extensionRef must be set.</p>
 </td>
 </tr>
 </tbody>
@@ -4648,7 +4652,7 @@ GlobalExternalAuthorizationConfig
 <td>
 <em>(Optional)</em>
 <p>GlobalExternalAuthorization allows envoys external authorization filter
-to be enabled for all HTTP requests.</p>
+to be enabled for all virtual hosts.</p>
 </td>
 </tr>
 <tr>
@@ -5342,7 +5346,7 @@ GlobalExternalAuthorizationConfig
 <td>
 <em>(Optional)</em>
 <p>GlobalExternalAuthorization allows envoys external authorization filter
-to be enabled for all HTTP requests.</p>
+to be enabled for all virtual hosts.</p>
 </td>
 </tr>
 <tr>
@@ -6947,7 +6951,7 @@ bool
 <a href="#projectcontour.io/v1alpha1.ContourConfigurationSpec">ContourConfigurationSpec</a>)
 </p>
 <p>
-<p>GlobalExternalAuthorizationConfig defines properties of global HTTP external authorization.</p>
+<p>GlobalExternalAuthorizationConfig defines properties of global external authorization.</p>
 </p>
 <table>
 <thead>

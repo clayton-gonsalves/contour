@@ -562,7 +562,7 @@ type Parameters struct {
 	Metrics MetricsParameters `yaml:"metrics,omitempty"`
 }
 
-// GlobalExternalAuthorizationConfig defines properties of global HTTP external authorization.
+// GlobalExternalAuthorizationConfig defines properties of global external authorization.
 type GlobalExternalAuthorization struct {
 	// ExtensionService identifies the extension service responsible for the authorization.
 	// formatted as <namespace>/<name>.

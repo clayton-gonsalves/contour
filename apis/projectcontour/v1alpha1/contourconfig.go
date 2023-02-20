@@ -63,7 +63,7 @@ type ContourConfigurationSpec struct {
 	EnableExternalNameService *bool `json:"enableExternalNameService,omitempty"`
 
 	// GlobalExternalAuthorization allows envoys external authorization filter
-	// to be enabled for all HTTP requests.
+	// to be enabled for all virtual hosts.
 	// +optional
 	GlobalExternalAuthorization *GlobalExternalAuthorizationConfig `json:"globalExtAuth,omitempty"`
 
@@ -628,7 +628,7 @@ type NetworkParameters struct {
 	EnvoyAdminPort *int `json:"adminPort,omitempty"`
 }
 
-// GlobalExternalAuthorizationConfig defines properties of global HTTP external authorization.
+// GlobalExternalAuthorizationConfig defines properties of global external authorization.
 type GlobalExternalAuthorizationConfig struct {
 	// ExtensionService identifies the extension service responsible for the authorization.
 	// formatted as <namespace>/<name>.

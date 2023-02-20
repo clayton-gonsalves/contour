@@ -52,7 +52,7 @@ func (v *VirtualHost) AuthorizationContext() map[string]string {
 }
 
 // DisableGlobalAuthorization returns true if this virtual host disables
-// global authorization. If a global authorization config present, the default
+// global authorization. If a global authorization config is present, the default
 // policy is to not disable.
 func (v *VirtualHost) DisableGlobalAuthorization() bool {
 	return v.Authorization != nil && v.Authorization.GlobalExternalAuthorizationDisabled

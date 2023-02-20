@@ -406,6 +406,7 @@ func (ctx *serveContext) convertToContourConfigurationSpec() contour_api_v1alpha
 
 		if ctx.Config.GlobalExternalAuthorization.WithRequestBody != nil {
 			globalExtAuth.WithRequestBody = &contour_api_v1alpha1.GlobalAuthorizationServerBufferSettings{
+				MaxRequestBytes:     ctx.Config.GlobalExternalAuthorization.WithRequestBody.MaxRequestBytes,
 				AllowPartialMessage: ref.To(ctx.Config.GlobalExternalAuthorization.WithRequestBody.AllowPartialMessage),
 				PackAsBytes:         ref.To(ctx.Config.GlobalExternalAuthorization.WithRequestBody.PackAsBytes),
 			}

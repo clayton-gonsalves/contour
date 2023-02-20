@@ -481,8 +481,9 @@ func TestConvertServeContext(t *testing.T) {
 				DisablePermitInsecure: ref.To(false),
 				FallbackCertificate:   nil,
 			},
-			EnableExternalNameService: ref.To(false),
-			RateLimitService:          nil,
+			EnableExternalNameService:   ref.To(false),
+			RateLimitService:            nil,
+			GlobalExternalAuthorization: nil,
 			Policy: &contour_api_v1alpha1.PolicyConfig{
 				RequestHeadersPolicy:  &contour_api_v1alpha1.HeadersPolicy{},
 				ResponseHeadersPolicy: &contour_api_v1alpha1.HeadersPolicy{},
@@ -696,6 +697,43 @@ func TestConvertServeContext(t *testing.T) {
 			},
 			getContourConfiguration: func(cfg contour_api_v1alpha1.ContourConfigurationSpec) contour_api_v1alpha1.ContourConfigurationSpec {
 				cfg.Envoy.Listener.ServerHeaderTransformation = contour_api_v1alpha1.AppendIfAbsentServerHeader
+				return cfg
+			},
+		},
+		"global external authorization": {
+			getServeContext: func(ctx *serveContext) *serveContext {
+				ctx.Config.GlobalExternalAuthorization = config.GlobalExternalAuthorization{
+					ExtensionService: "extauthns/extauthtext",
+					FailOpen:         true,
+					AuthPolicy: &config.GlobalAuthorizationPolicy{
+						Context: map[string]string{
+							"foo": "bar",
+						},
+					},
+					WithRequestBody: &config.GlobalAuthorizationServerBufferSettings{
+						MaxRequestBytes:     512,
+						PackAsBytes:         true,
+						AllowPartialMessage: true,
+					},
+				}
+				return ctx
+			},
+			getContourConfiguration: func(cfg contour_api_v1alpha1.ContourConfigurationSpec) contour_api_v1alpha1.ContourConfigurationSpec {
+				cfg.GlobalExternalAuthorization = &contour_api_v1alpha1.GlobalExternalAuthorizationConfig{
+					ExtensionService: "extauthns/extauthtext",
+					FailOpen:         ref.To(true),
+					AuthPolicy: &contour_api_v1alpha1.GlobalAuthorizationPolicy{
+						Context: map[string]string{
+							"foo": "bar",
+						},
+						Disabled: ref.To(false),
+					},
+					WithRequestBody: &contour_api_v1alpha1.GlobalAuthorizationServerBufferSettings{
+						MaxRequestBytes:     512,
+						PackAsBytes:         ref.To(true),
+						AllowPartialMessage: ref.To(true),
+					},
+				}
 				return cfg
 			},
 		},

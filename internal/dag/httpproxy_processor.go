@@ -92,7 +92,7 @@ type HTTPProxyProcessor struct {
 	// Response headers that will be set on all routes (optional).
 	ResponseHeadersPolicy *HeadersPolicy
 
-	// GlobalExternalAuthorization
+	// GlobalExternalAuthorization defines how requests will be authorized.
 	GlobalExternalAuthorization *contour_api_v1alpha1.GlobalExternalAuthorizationConfig
 
 	// ConnectTimeout defines how long the proxy should wait when establishing connection to upstream service.

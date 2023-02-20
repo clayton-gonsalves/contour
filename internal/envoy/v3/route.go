@@ -70,17 +70,6 @@ func VirtualHostAndRoutes(vh *dag.VirtualHost, dagRoutes []*dag.Route, secure bo
 // buildRoute converts a DAG route to an Envoy route.
 func buildRoute(dagRoute *dag.Route, vhostName string, secure bool, authService *dag.ExtensionCluster) *envoy_route_v3.Route {
 	switch {
-	case dagRoute.HTTPSUpgrade && !secure && dagRoute.AuthDisabled:
-		rt := &envoy_route_v3.Route{
-			Match:  RouteMatch(dagRoute),
-			Action: UpgradeHTTPS(),
-		}
-
-		if rt.TypedPerFilterConfig == nil {
-			rt.TypedPerFilterConfig = map[string]*anypb.Any{}
-		}
-		rt.TypedPerFilterConfig["envoy.filters.http.ext_authz"] = routeAuthzDisabled()
-		return rt
 	case dagRoute.HTTPSUpgrade && !secure:
 		// TODO(dfc) if we ensure the builder never returns a dag.Route connected
 		// to a SecureVirtualHost that requires upgrade, this logic can move to

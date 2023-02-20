@@ -193,9 +193,10 @@ type ExtensionServiceReference struct {
 // external authorization GRPC protocol (https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto).
 type AuthorizationServer struct {
 	// ExtensionServiceRef specifies the extension resource that will authorize client requests.
+	// One of globalExtAuthDisabled or extensionRef must be set.
 	//
-	// +required
-	ExtensionServiceRef ExtensionServiceReference `json:"extensionRef,,omitempty"`
+	// +optional
+	ExtensionServiceRef ExtensionServiceReference `json:"extensionRef,omitempty"`
 
 	// AuthPolicy sets a default authorization policy for client requests.
 	// This policy will be used unless overridden by individual routes.
@@ -225,6 +226,9 @@ type AuthorizationServer struct {
 	WithRequestBody *AuthorizationServerBufferSettings `json:"withRequestBody,omitempty"`
 
 	// GlobalExternalAuthorizationDisabled optionally disables the global external authorization on the virtual host.
+	// One of globalExtAuthDisabled or extensionRef must be set.
+	//
+	// +optional
 	GlobalExternalAuthorizationDisabled bool `json:"globalExtAuthDisabled,omitempty"`
 }
 

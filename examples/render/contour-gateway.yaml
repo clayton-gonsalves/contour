@@ -632,7 +632,7 @@ spec:
                 type: object
               globalExtAuth:
                 description: GlobalExternalAuthorization allows envoys external authorization
-                  filter to be enabled for all HTTP requests.
+                  filter to be enabled for all virtual hosts.
                 properties:
                   extensionService:
                     description: ExtensionService identifies the extension service
@@ -3717,7 +3717,7 @@ spec:
                     type: object
                   globalExtAuth:
                     description: GlobalExternalAuthorization allows envoys external
-                      authorization filter to be enabled for all HTTP requests.
+                      authorization filter to be enabled for all virtual hosts.
                     properties:
                       extensionService:
                         description: ExtensionService identifies the extension service
@@ -6083,7 +6083,8 @@ spec:
                         type: object
                       extensionRef:
                         description: ExtensionServiceRef specifies the extension resource
-                          that will authorize client requests.
+                          that will authorize client requests. One of globalExtAuthDisabled
+                          or extensionRef must be set.
                         properties:
                           apiVersion:
                             description: API version of the referent. If this field
@@ -6112,7 +6113,8 @@ spec:
                       globalExtAuthDisabled:
                         description: GlobalExternalAuthorizationDisabled optionally
                           disables the global external authorization on the virtual
-                          host.
+                          host. One of globalExtAuthDisabled or extensionRef must
+                          be set.
                         type: boolean
                       responseTimeout:
                         description: ResponseTimeout configures maximum time to wait

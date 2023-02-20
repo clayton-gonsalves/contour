@@ -141,6 +141,8 @@ type ListenerConfig struct {
 	// used.
 	RateLimitConfig *RateLimitConfig
 
+	// GlobalExternalAuthConfig optionally configures the global external authorization Service to be
+	// used.
 	GlobalExternalAuthConfig *GlobalExternalAuthConfig
 }
 

@@ -30,8 +30,6 @@ import (
 	envoy_v3 "github.com/projectcontour/contour/internal/envoy/v3"
 	"github.com/projectcontour/contour/internal/featuretests"
 	"github.com/projectcontour/contour/internal/fixture"
-	"github.com/projectcontour/contour/internal/protobuf"
-	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/durationpb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
@@ -327,30 +325,12 @@ func authzOverrideDisabled(t *testing.T, rh cache.ResourceEventHandler, c *Conto
 					&envoy_route_v3.Route{
 						Match:  routePrefix("/default"),
 						Action: withRedirect(),
-						TypedPerFilterConfig: map[string]*anypb.Any{
-							"envoy.filters.http.ext_authz": protobuf.MustMarshalAny(
-								&envoy_config_filter_http_ext_authz_v3.ExtAuthzPerRoute{
-									Override: &envoy_config_filter_http_ext_authz_v3.ExtAuthzPerRoute_Disabled{
-										Disabled: true,
-									},
-								},
-							),
-						},
 					},
 				),
 				envoy_v3.VirtualHost(enabled,
 					&envoy_route_v3.Route{
 						Match:  routePrefix("/disabled"),
 						Action: withRedirect(),
-						TypedPerFilterConfig: map[string]*anypb.Any{
-							"envoy.filters.http.ext_authz": protobuf.MustMarshalAny(
-								&envoy_config_filter_http_ext_authz_v3.ExtAuthzPerRoute{
-									Override: &envoy_config_filter_http_ext_authz_v3.ExtAuthzPerRoute_Disabled{
-										Disabled: true,
-									},
-								},
-							),
-						},
 					},
 					&envoy_route_v3.Route{
 						Match:  routePrefix("/default"),

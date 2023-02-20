@@ -113,6 +113,7 @@ func (c *RouteCache) OnChange(root *dag.DAG) {
 		}
 
 		var auth *dag.ExtensionCluster
+		// TLS vhost overrides non TLS vhost.
 		if vhost.GlobalExternalAuthorization != nil {
 			auth = vhost.GlobalExternalAuthorization.AuthorizationService
 		} else if vhost.AuthorizationService != nil {

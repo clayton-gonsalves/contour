@@ -657,6 +657,8 @@ type VirtualHost struct {
 	// are rate limited.
 	RateLimitPolicy *RateLimitPolicy
 
+	// GlobalExternalAuthorization defineshow requests for the virtual host
+	// are authorized.
 	GlobalExternalAuthorization *GlobalExternalAuthorization
 
 	Routes map[string]*Route
